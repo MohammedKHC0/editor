@@ -62,12 +62,6 @@ visit [Documentation Site](https://project-sora.github.io/sora-editor-docs/).
 * Official QQ Group:[734652304](https://qm.qq.com/q/kKBqRsVrQ4)
 * Official [Telegram Group](https://t.me/rosemoe_code_editor)
 
-## Contributors
-
-<a href="https://github.com/Rosemoe/sora-editor/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Rosemoe/sora-editor" />
-</a>
-
 ## License
 
 ```
