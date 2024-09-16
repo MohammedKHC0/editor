@@ -77,13 +77,13 @@ subprojects {
         configureKotlinExtension()
     }
 
-    /*plugins.withId("com.vanniktech.maven.publish.base") {
+    plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
             group = "com.github.MohammedKHC0.editor"
             version = Versions.versionName
             pomFromGradleProperties()
             publishToMavenCentral(SonatypeHost.S01)
-            signAllPublications()
+            //signAllPublications()
             if ("bom" != this@subprojects.name) {
                 configure(
                     AndroidSingleVariantLibrary(
@@ -94,7 +94,7 @@ subprojects {
                 )
             }
         }
-    }*/
+    }
 }
 
 tasks.register<Delete>("clean").configure {
