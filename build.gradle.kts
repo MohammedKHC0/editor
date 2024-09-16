@@ -77,7 +77,7 @@ subprojects {
         configureKotlinExtension()
     }
 
-    plugins.withId("com.vanniktech.maven.publish.base") {
+    /*plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
             group = "io.github.Rosemoe.sora-editor"
             version = Versions.versionName
@@ -94,7 +94,7 @@ subprojects {
                 )
             }
         }
-    }
+    }*/
 }
 
 tasks.register<Delete>("clean").configure {
