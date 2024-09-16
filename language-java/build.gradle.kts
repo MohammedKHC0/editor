@@ -27,7 +27,7 @@ plugins {
     id("com.vanniktech.maven.publish.base")
 }
 
-group = "io.github.Rosemoe.sora-editor"
+group = "com.mohammedkhc.editor"
 version = Versions.versionName
 
 android {
