@@ -79,7 +79,7 @@ subprojects {
 
     /*plugins.withId("com.vanniktech.maven.publish.base") {
         configure<MavenPublishBaseExtension> {
-            group = "io.github.Rosemoe.sora-editor"
+            group = "com.github.MohammedKHC0.editor"
             version = Versions.versionName
             pomFromGradleProperties()
             publishToMavenCentral(SonatypeHost.S01)
