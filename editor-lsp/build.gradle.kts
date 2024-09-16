@@ -47,6 +47,7 @@ android {
 
 dependencies {
     compileOnly(projects.editor)
+    implementation(libs.markwon)
     implementation(libs.lsp4j)
     implementation(libs.kotlinx.coroutines)
 }

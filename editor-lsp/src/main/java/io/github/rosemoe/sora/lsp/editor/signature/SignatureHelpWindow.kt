@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     16 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.editor.signature
@@ -27,18 +29,26 @@ package io.github.rosemoe.sora.lsp.editor.signature
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.SpannableStringBuilder
+import android.text.method.LinkMovementMethod
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.MeasureSpec
+import android.view.View.TEXT_DIRECTION_LTR
+import android.widget.ScrollView
 import android.widget.TextView
 import io.github.rosemoe.sora.event.ColorSchemeUpdateEvent
+import io.github.rosemoe.sora.event.EditorFocusChangeEvent
+import io.github.rosemoe.sora.event.ScrollEvent
 import io.github.rosemoe.sora.event.subscribeEvent
 import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.base.EditorPopupWindow
+import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
+import io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
+import io.noties.markwon.Markwon
 import org.eclipse.lsp4j.SignatureHelp
 import org.eclipse.lsp4j.SignatureInformation
 
@@ -53,19 +63,34 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
     private val rootView: View = LayoutInflater.from(editor.context)
         .inflate(io.github.rosemoe.sora.lsp.R.layout.signature_help_tooltip_window, null, false)
 
-    private val maxWidth = (editor.width * 0.67).toInt()
+    // editor width can change
+    //private val maxWidth = (editor.width * 0.67).toInt()
     private val maxHeight = (editor.dpUnit * 235).toInt()
 
     private val text =
-        rootView.findViewById<TextView>(io.github.rosemoe.sora.lsp.R.id.signature_help_tooltip_text)
+        rootView.findViewById<TextView>(io.github.rosemoe.sora.lsp.R.id.signature_help_tooltip_text).apply {
+            movementMethod = LinkMovementMethod.getInstance()
+            textDirection = TEXT_DIRECTION_LTR
+        }
     private val locationBuffer = IntArray(2)
     protected val eventManager = editor.createSubEventManager()
 
     private lateinit var signatureHelp: SignatureHelp
-
+    private var markwon = Markwon.builder(editor.context).build()
 
     init {
         super.setContentView(rootView)
+
+        eventManager.subscribeEvent<EditorFocusChangeEvent> { e, _ ->
+            if (!e.isGainFocus) dismiss()
+        }
+
+        eventManager.subscribeEvent<ScrollEvent> { _, _ ->
+            if (editor.isInMouseMode) {
+                return@subscribeEvent
+            }
+            if (isShowing) updateWindowSizeAndLocation()
+        }
 
         eventManager.subscribeEvent<ColorSchemeUpdateEvent> { _, _ ->
             applyColorScheme()
@@ -85,15 +110,24 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
 
     open fun show(signatureHelp: SignatureHelp) {
         this.signatureHelp = signatureHelp
+        editor.getComponent(EditorAutoCompletion::class.java).dismiss()
+        editor.getComponent(EditorDiagnosticTooltipWindow::class.java).dismiss()
+        (text.parent as ScrollView).scrollTo(0, 0)
         renderSignatureHelp()
+        if (text.text.trim().isEmpty()) {
+            dismiss()
+            return
+        }
         updateWindowSizeAndLocation()
         show()
     }
 
 
     private fun updateWindowSizeAndLocation() {
+        val messageWidth = (editor.width * 0.87).toInt()
+
         rootView.measure(
-            MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.AT_MOST),
+            MeasureSpec.makeMeasureSpec(messageWidth, MeasureSpec.AT_MOST),
             MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST)
         )
 
@@ -124,7 +158,7 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
             dismiss()
             return
         }
-        val windowX = (charX - width / 2).coerceAtLeast(0f)
+        val windowX = (charX - width / 2).coerceIn(0f, editor.width.toFloat() - width)
         setLocationAbsolutely(windowX.toInt(), windowY.toInt())
     }
 
@@ -159,6 +193,14 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
             }
         }
 
+        signatures[activeSignatureIndex].documentation?.let {
+            renderStringBuilder.append("\n\n")
+            renderStringBuilder.append(
+                if (it.isLeft) it.left
+                else markwon.toMarkdown(it.right.value)
+            )
+        }
+
         text.text = renderStringBuilder
     }
 
@@ -169,10 +211,13 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
         isCurrentSignature: Boolean
     ) {
         val label = signature.label
+
         val parameters = signature.parameters
         val activeParameter = parameters.getOrNull(activeParameterIndex)
 
-        val parameterStart = label.substring(0, label.indexOf('('))
+        val bracketIndex = label.indexOfAny(charArrayOf('(', '<'))
+        if (bracketIndex < 0) return
+        val parameterStart = label.substring(0, bracketIndex)
         val currentIndex = 0.coerceAtLeast(renderStringBuilder.lastIndex);
 
         renderStringBuilder.append(
@@ -180,20 +225,25 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
             ForegroundColorSpan(defaultTextColor), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         renderStringBuilder.append(
-            "("
+            label[bracketIndex]
         )
 
         for (i in 0 until parameters.size) {
             val parameter = parameters[i]
+
+            val text =
+                if (parameter.label.isLeft) parameter.label.left
+                else label.substring(parameter.label.right.first, parameter.label.right.second)
+
             if (parameter == activeParameter && isCurrentSignature) {
                 renderStringBuilder.append(
-                    parameter.label.left,
+                    text,
                     ForegroundColorSpan(highlightParameter),
                     SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
                 renderStringBuilder.setSpan(
                     StyleSpan(Typeface.BOLD),
-                    renderStringBuilder.lastIndex - parameter.label.left.length,
+                    renderStringBuilder.lastIndex - text.length,
                     renderStringBuilder.lastIndex,
                     SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
@@ -205,7 +255,7 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
                 }
             } else {
                 renderStringBuilder.append(
-                    parameter.label.left,
+                    text,
                     ForegroundColorSpan(defaultTextColor),
                     SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
@@ -218,7 +268,11 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
 
         }
 
-        renderStringBuilder.append(")")
+        renderStringBuilder.append(when (label[bracketIndex]) {
+            '(' -> ")"
+            '<' -> ">"
+            else -> ""
+        })
 
         if (isCurrentSignature) {
             renderStringBuilder.setSpan(

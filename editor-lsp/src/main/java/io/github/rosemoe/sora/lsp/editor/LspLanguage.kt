@@ -122,6 +122,10 @@ class LspLanguage(var editor: LspEditor) : Language {
 
         serverResultCompletionItems.thenAccept { completions ->
             completions.forEach { completionItem: org.eclipse.lsp4j.CompletionItem ->
+		if (!(completionItem.filterText ?: completionItem.label).startsWith(prefix)) {
+		    return@forEach
+            	}
+
                 completionList.add(
                     completionItemProvider.createCompletionItem(
                         completionItem,

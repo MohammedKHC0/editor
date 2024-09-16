@@ -20,16 +20,20 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.events.diagnostics
 
 import io.github.rosemoe.sora.lang.diagnostic.DiagnosticsContainer
 import io.github.rosemoe.sora.lsp.editor.LspEditor
+import io.github.rosemoe.sora.lsp.editor.diagnostics.LspEditorDiagnostics
 import io.github.rosemoe.sora.lsp.events.EventContext
 import io.github.rosemoe.sora.lsp.events.EventListener
 import io.github.rosemoe.sora.lsp.events.EventType
 import io.github.rosemoe.sora.lsp.utils.transformToEditorDiagnostics
+import io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow
 import org.eclipse.lsp4j.Diagnostic
 
 
@@ -40,7 +44,7 @@ class PublishDiagnosticsEvent : EventListener {
 
         val lspEditor = context.get<LspEditor>("lsp-editor")
         val originEditor = lspEditor.editor ?: return
-        val data = context.get<List<Diagnostic>>("data")
+        val data = context.getOrNull<List<Diagnostic>>("data") ?: context.getOrNull("arg0") ?: return
 
         val diagnosticsContainer =
             originEditor.diagnostics ?: DiagnosticsContainer()
@@ -52,6 +56,10 @@ class PublishDiagnosticsEvent : EventListener {
         )
 
         originEditor.diagnostics = diagnosticsContainer
+
+        originEditor.getComponent(EditorDiagnosticTooltipWindow::class.java).let {
+            (it as? LspEditorDiagnostics)?.updateDiagnostics()
+        }
     }
 
 

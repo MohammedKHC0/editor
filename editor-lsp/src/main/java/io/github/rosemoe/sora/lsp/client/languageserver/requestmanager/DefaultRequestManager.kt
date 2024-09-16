@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.client.languageserver.requestmanager
@@ -513,6 +515,19 @@ class DefaultRequestManager(
             try {
                 if (checkCodeActionProvider(serverCapabilities.codeActionProvider)) textDocumentService.codeAction(
                     params
+                ) else null
+            } catch (e: Exception) {
+                crashed(e)
+                null
+            }
+        } else null
+    }
+
+    override fun resolveCodeAction(unresolved: CodeAction?): CompletableFuture<CodeAction>? {
+        return if (checkStatus()) {
+            try {
+                if (checkCodeActionProvider(serverCapabilities.codeActionProvider)) textDocumentService.resolveCodeAction(
+                    unresolved
                 ) else null
             } catch (e: Exception) {
                 crashed(e)

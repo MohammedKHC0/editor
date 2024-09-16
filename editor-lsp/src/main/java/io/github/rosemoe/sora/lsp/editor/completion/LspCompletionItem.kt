@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.editor.completion
@@ -36,13 +38,15 @@ import io.github.rosemoe.sora.lsp.utils.createRange
 import io.github.rosemoe.sora.text.CharPosition
 import io.github.rosemoe.sora.text.Content
 import io.github.rosemoe.sora.widget.CodeEditor
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.InsertTextFormat
 import org.eclipse.lsp4j.TextEdit
 
 
 class LspCompletionItem(
-    private val completionItem: CompletionItem,
+    private var completionItem: CompletionItem,
     private val eventManager: LspEventManager,
     prefixLength: Int
 ) : io.github.rosemoe.sora.lang.completion.CompletionItem(
@@ -58,13 +62,22 @@ class LspCompletionItem(
             )
         sortText = completionItem.sortText
         val labelDetails = completionItem.labelDetails
-        if (labelDetails != null && labelDetails.description != null) {
-            desc = labelDetails.description
+        if (labelDetails != null && (labelDetails.detail != null || labelDetails.description != null)) {
+            desc = "${labelDetails.detail.let {
+                if (it == null) "" else "$it "
+            }}${labelDetails.description ?: ""}"
         }
         icon = draw(kind ?: CompletionItemKind.Text)
     }
 
     override fun performCompletion(editor: CodeEditor, text: Content, position: CharPosition) {
+        runBlocking {
+            eventManager.editor.requestManager?.resolveCompletionItem(completionItem)
+                ?.await().let {
+                    if (it != null) completionItem = it
+                }
+        }
+
         var textEdit = TextEdit()
 
         textEdit.range = createRange(
@@ -133,7 +146,7 @@ class LspCompletionItem(
 
         if (completionItem.additionalTextEdits != null) {
             eventManager.emit(EventType.applyEdits) {
-                put("edits", listOf(completionItem.additionalTextEdits))
+                put("edits", completionItem.additionalTextEdits)
                 put(text)
             }
         }

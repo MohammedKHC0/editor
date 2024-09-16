@@ -20,17 +20,23 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.client.languageserver.wrapper
 
+import android.util.Log
 import io.github.rosemoe.sora.lsp.client.languageserver.ServerInitializeListener
 import org.eclipse.lsp4j.InitializeResult
 import org.eclipse.lsp4j.MessageParams
+import org.eclipse.lsp4j.ProgressParams
+import org.eclipse.lsp4j.WorkDoneProgressCreateParams
 import org.eclipse.lsp4j.jsonrpc.MessageConsumer
 import org.eclipse.lsp4j.jsonrpc.messages.Message
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseMessage
 import org.eclipse.lsp4j.services.LanguageServer
+import java.util.concurrent.CompletableFuture
 import java.util.function.BooleanSupplier
 import java.util.function.Function
 
@@ -46,6 +52,7 @@ class EventHandler internal constructor(
     private var languageServer: LanguageServer? = null
     override fun apply(messageConsumer: MessageConsumer): MessageConsumer {
         return MessageConsumer { message: Message ->
+            Log.v("Lsp EventHandler", message.toString())
             if (isRunning.asBoolean) {
                 handleMessage(message)
                 messageConsumer.consume(message)
@@ -73,6 +80,7 @@ class EventHandler internal constructor(
         fun onHandlerException(exception: Exception) {}
         fun onShowMessage(messageParams: MessageParams?) {}
         fun onLogMessage(messageParams: MessageParams?) {}
+        fun onNotifyProgress(messageParams: ProgressParams?) {}
 
         companion object {
             val DEFAULT: EventListener = object : EventListener {}

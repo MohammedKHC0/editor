@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.utils
@@ -110,7 +112,10 @@ fun TextRange.asLspRange(): Range {
 fun LspEditor.createDidOpenTextDocumentParams(): DidOpenTextDocumentParams {
     val params = DidOpenTextDocumentParams()
     params.textDocument = TextDocumentItem(
-        this.uri.toFileUri(), this.fileExt, getVersion(this.uri), editorContent
+        this.uri.toFileUri(),
+        this.languageServerWrapper.serverDefinition.languageIdFor(this.fileExt),
+        getVersion(this.uri),
+        editorContent
     )
     return params
 }
@@ -147,16 +152,20 @@ fun List<Diagnostic>.transformToEditorDiagnostics(editor: CodeEditor): List<Diag
     var id = 0L
     for (diagnosticSource in this) {
         Log.w("diagnostic message", "diagnostic: " + diagnosticSource.message)
-        val diagnostic = DiagnosticRegion(
-            diagnosticSource.range.start.getIndex(editor),
-            diagnosticSource.range.end.getIndex(editor),
-            diagnosticSource.severity.toEditorLevel(),
-            id++,
-            DiagnosticDetail(
-                diagnosticSource.severity.name, diagnosticSource.message, null, null
+        try {
+            val diagnostic = DiagnosticRegion(
+                diagnosticSource.range.start.getIndex(editor),
+                diagnosticSource.range.end.getIndex(editor),
+                diagnosticSource.severity.toEditorLevel(),
+                id++,
+                DiagnosticDetail(
+                    diagnosticSource.severity.name, diagnosticSource.message, null, diagnosticSource
+                )
             )
-        )
-        result.add(diagnostic)
+            result.add(diagnostic)
+        } catch (e: StringIndexOutOfBoundsException) {
+            Log.e("diagnostic message", "${e.message}")
+        }
     }
     return result
 }

@@ -31,6 +31,7 @@ import io.github.rosemoe.sora.lsp.editor.LspEditor
 import io.github.rosemoe.sora.lsp.events.EventType
 import io.github.rosemoe.sora.lsp.events.document.documentChange
 import io.github.rosemoe.sora.lsp.events.signature.signatureHelp
+import io.github.rosemoe.sora.text.CharPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -48,7 +49,17 @@ class LspEditorContentChangeEventReceiver(private val editor: LspEditor) :
                 return@launch
             }
 
-            editor.eventManager.emitAsync(EventType.signatureHelp, event.changeStart)
+            // TODO(MohammedKHC) maybe find better way, although this works!
+            val index =
+                if (event.action == ContentChangeEvent.ACTION_INSERT && !event.isCausedByUndoManager)
+                    event.changedText.indexOfAny(charArrayOf('(', '<'))
+                else -1
+
+            editor.eventManager.emitAsync(EventType.signatureHelp,
+                if (index > -1)
+                    CharPosition(event.changeStart.line,
+                        event.changeStart.column + index + 1)
+                else event.changeStart)
         }
 
 

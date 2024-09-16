@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.client
@@ -33,10 +35,12 @@ import org.eclipse.lsp4j.ApplyWorkspaceEditResponse
 import org.eclipse.lsp4j.ConfigurationParams
 import org.eclipse.lsp4j.MessageActionItem
 import org.eclipse.lsp4j.MessageParams
+import org.eclipse.lsp4j.ProgressParams
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.RegistrationParams
 import org.eclipse.lsp4j.ShowMessageRequestParams
 import org.eclipse.lsp4j.UnregistrationParams
+import org.eclipse.lsp4j.WorkDoneProgressCreateParams
 import org.eclipse.lsp4j.WorkspaceFolder
 import org.eclipse.lsp4j.services.LanguageClient
 import java.net.URI
@@ -86,6 +90,9 @@ open class DefaultLanguageClient(protected val context: ClientContext) :
         // FIXME: support it.
 
         val diagnosticsContainer = context.project.diagnosticsContainer
+        // it needs to be cleared!
+        diagnosticsContainer.clear()
+
         val uri = URI(publishDiagnosticsParams.uri).toFileUri()
 
         diagnosticsContainer.addDiagnostics(
@@ -114,6 +121,15 @@ open class DefaultLanguageClient(protected val context: ClientContext) :
 
     override fun logMessage(messageParams: MessageParams) {
         context.eventListener.onLogMessage(messageParams)
+    }
+
+    override fun createProgress(params: WorkDoneProgressCreateParams?): CompletableFuture<Void> {
+        // TODO(MohammedKHC)
+        return CompletableFuture()
+    }
+
+    override fun notifyProgress(params: ProgressParams?) {
+        context.eventListener.onNotifyProgress(params)
     }
 
     companion object {

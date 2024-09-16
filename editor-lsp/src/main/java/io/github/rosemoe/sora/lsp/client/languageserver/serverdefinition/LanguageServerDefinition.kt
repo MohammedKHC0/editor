@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.client.languageserver.serverdefinition
@@ -27,6 +29,8 @@ package io.github.rosemoe.sora.lsp.client.languageserver.serverdefinition
 import android.util.Log
 import io.github.rosemoe.sora.lsp.client.connection.StreamConnectionProvider
 import io.github.rosemoe.sora.lsp.client.languageserver.wrapper.EventHandler
+import io.github.rosemoe.sora.lsp.utils.FileUri
+import org.eclipse.lsp4j.InitializeParams
 
 import java.io.IOException
 import java.io.InputStream
@@ -103,6 +107,10 @@ abstract class LanguageServerDefinition {
      * @return The stream connection provider
      */
     open fun createConnectionProvider(workingDir: String): StreamConnectionProvider {
+        throw UnsupportedOperationException()
+    }
+
+    open fun getInitializationParams(uri: FileUri): InitializeParams {
         throw UnsupportedOperationException()
     }
 

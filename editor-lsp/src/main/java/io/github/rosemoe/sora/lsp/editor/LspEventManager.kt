@@ -34,7 +34,7 @@ import java.util.function.Supplier
 
 class LspEventManager(
     private val project: LspProject,
-    private val editor: LspEditor
+    val editor: LspEditor
 ) {
 
     private val eventEmitter = project.eventEmitter

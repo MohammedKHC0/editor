@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.client.languageserver.wrapper
@@ -194,7 +196,7 @@ class LanguageServerWrapper(
 
             val (inputStream, outputStream) = streams
 
-            val initParams = getInitParams()
+            val initParams = serverDefinition.getInitializationParams(project.projectUri)
             // using for lsp
             val executorService = Executors.newCachedThreadPool()
 
@@ -323,12 +325,14 @@ class LanguageServerWrapper(
         )
         connectedEditors.remove(editor)
         editor.dispose()
-        if (connectedEditors.isEmpty()) {
+
+        // Changed by MohammedKHC cause that gives errors to rust analyzer
+        /*if (connectedEditors.isEmpty()) {
             stop(false)
-        }
+        }*/
     }
 
-    private fun getInitParams(): InitializeParams {
+    /*private fun getInitParams(): InitializeParams {
         val initParams = InitializeParams().apply {
             rootUri = project.projectUri.toUri().toASCIIString()
         }
@@ -381,7 +385,7 @@ class LanguageServerWrapper(
                 serverDefinition.getInitializationOptions(URI.create(initParams.rootUri))
         }
         return initParams
-    }
+    }*/
 
     fun crashed(e: Exception) {
         crashCount += 1

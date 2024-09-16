@@ -20,10 +20,13 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.events.document
 
+import android.util.Log
 import io.github.rosemoe.sora.lsp.events.EventContext
 import io.github.rosemoe.sora.lsp.events.EventListener
 import io.github.rosemoe.sora.lsp.events.EventType
@@ -37,28 +40,32 @@ class ApplyEditsEvent : EventListener {
     override val eventName: String = "textDocument/applyEdits"
 
     override fun handle(context: EventContext) {
-        val editList: List<TextEdit> = context.get("edits")
+        val editList = context.get("edits") as? List<TextEdit> ?: return
         val content = context.getByClass<Content>() ?: return
 
-        editList.forEach { textEdit: TextEdit ->
+        editList.asReversed().forEach { textEdit: TextEdit ->
             val range = textEdit.range
             val text = textEdit.newText
-            var startIndex =
-                content.getCharIndex(range.start.line, range.start.character)
-            var endIndex =
-                content.getCharIndex(range.end.line, range.end.character)
-            if (endIndex < startIndex) {
-                Logger.instance(this.javaClass.name)
-                    .w(
-                        "Invalid location information found applying edits from %s to %s",
-                        range.start,
-                        range.end
-                    )
-                val diff = startIndex - endIndex
-                endIndex = startIndex
-                startIndex = endIndex - diff
+            try {
+                var startIndex =
+                    content.getCharIndex(range.start.line, range.start.character)
+                var endIndex =
+                    content.getCharIndex(range.end.line, range.end.character)
+                if (endIndex < startIndex) {
+                    Logger.instance(this.javaClass.name)
+                        .w(
+                            "Invalid location information found applying edits from %s to %s",
+                            range.start,
+                            range.end
+                        )
+                    val diff = startIndex - endIndex
+                    endIndex = startIndex
+                    startIndex = endIndex - diff
+                }
+                content.replace(startIndex, endIndex, text)
+            } catch (e: StringIndexOutOfBoundsException) {
+                Log.e("ApplyEdits", e.message.toString())
             }
-            content.replace(startIndex, endIndex, text)
         }
     }
 

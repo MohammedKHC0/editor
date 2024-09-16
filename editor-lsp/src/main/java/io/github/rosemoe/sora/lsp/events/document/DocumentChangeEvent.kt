@@ -20,6 +20,8 @@
  *
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
+ *
+ *     15 September 2024 - Modified by MohammedKHC
  ******************************************************************************/
 
 package io.github.rosemoe.sora.lsp.events.document
@@ -86,7 +88,9 @@ class DocumentChangeEvent : AsyncEventListener() {
             editor.uri.createTextDocumentContentChangeEvent(
                 createRange(
                     data.changeStart,
-                    data.changeEnd
+                    // rust-analyzer panic without these
+                    if (data.action == ContentChangeEvent.ACTION_DELETE) data.changeEnd
+                    else data.changeStart
                 ),
                 if (data.action == ContentChangeEvent.ACTION_DELETE) "" else text
             )
@@ -100,7 +104,7 @@ class DocumentChangeEvent : AsyncEventListener() {
     ): DidChangeTextDocumentParams {
         val kind = editor.textDocumentSyncKind
         val isFullSync = kind == TextDocumentSyncKind.None || kind == TextDocumentSyncKind.Full
-        println(isFullSync)
+        //println(isFullSync)
 
         return editor.uri.createDidChangeTextDocumentParams(
             if (isFullSync) createFullTextDocumentContentChangeEvent(editor) else createIncrementTextDocumentContentChangeEvent(
