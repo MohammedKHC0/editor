@@ -36,7 +36,6 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.publish) apply false
-    `maven-publish`
 }
 
 val highApiProjects = arrayOf("editor-lsp")
@@ -109,18 +108,4 @@ tasks.register("bundleAll") {
     allprojects
         .filter { it.name !in excludeProjectName }
         .forEach { dependsOn(it.getTasksByName("bundleReleaseAar", false)) }
-}
-
-publishing {
-    publications {
-        register<MavenPublication>("release") {
-            groupId = "com.mohammedkhc"
-            artifactId = "editor"
-            version = Versions.versionName
-
-            afterEvaluate {
-                from(components["release"])
-            }
-        }
-    }
 }
