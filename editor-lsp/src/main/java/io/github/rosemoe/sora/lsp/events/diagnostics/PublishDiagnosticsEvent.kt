@@ -46,19 +46,22 @@ class PublishDiagnosticsEvent : EventListener {
         val originEditor = lspEditor.editor ?: return
         val data = context.getOrNull<List<Diagnostic>>("data") ?: context.getOrNull("arg0") ?: return
 
-        val diagnosticsContainer =
-            originEditor.diagnostics ?: DiagnosticsContainer()
+        // THIS NEEDS TO RUN ON UI THREAD!
+        originEditor.post {
+            val diagnosticsContainer =
+                originEditor.diagnostics ?: DiagnosticsContainer()
 
-        diagnosticsContainer.reset()
+            diagnosticsContainer.reset()
 
-        diagnosticsContainer.addDiagnostics(
-            data.transformToEditorDiagnostics(originEditor)
-        )
+            diagnosticsContainer.addDiagnostics(
+                data.transformToEditorDiagnostics(originEditor)
+            )
 
-        originEditor.diagnostics = diagnosticsContainer
+            originEditor.diagnostics = diagnosticsContainer
 
-        originEditor.getComponent(EditorDiagnosticTooltipWindow::class.java).let {
-            (it as? LspEditorDiagnostics)?.updateDiagnostics()
+            originEditor.getComponent(EditorDiagnosticTooltipWindow::class.java).let {
+                (it as? LspEditorDiagnostics)?.updateDiagnostics()
+            }
         }
     }
 
