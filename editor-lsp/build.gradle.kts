@@ -47,7 +47,10 @@ android {
 
 dependencies {
     compileOnly(projects.editor)
-    implementation(libs.markwon)
+    implementation(libs.markwon.core)
+    implementation(libs.markwon.syntax.highlight) {
+        exclude("org.jetbrains", "annotations-java5")
+    }
     implementation(libs.lsp4j)
     implementation(libs.kotlinx.coroutines)
 }
