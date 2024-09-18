@@ -25,6 +25,7 @@
 package io.github.rosemoe.sora.lsp.editor
 
 import androidx.annotation.WorkerThread
+import io.github.rosemoe.sora.event.ColorSchemeUpdateEvent
 import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.lang.Language
 import io.github.rosemoe.sora.lsp.client.languageserver.requestmanager.RequestManager
@@ -107,7 +108,14 @@ class LspEditor(
                     editorContentChangeEventReceiver
                 )
 
-            unsubscribeFunction = Runnable { subscriptionReceipt.unsubscribe() }
+            val themeChangeEvent = currentEditor.subscribeEvent(ColorSchemeUpdateEvent::class.java) { _, _ ->
+                signatureHelpWindowWeakReference = WeakReference(SignatureHelpWindow(currentEditor))
+            }
+
+            unsubscribeFunction = Runnable {
+                subscriptionReceipt.unsubscribe()
+                themeChangeEvent.unsubscribe()
+            }
         }
         get() {
             return _currentEditor.get()
