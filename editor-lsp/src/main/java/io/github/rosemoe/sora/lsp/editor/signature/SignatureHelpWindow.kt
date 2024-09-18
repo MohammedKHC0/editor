@@ -49,8 +49,17 @@ import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
 import io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
 import io.noties.markwon.Markwon
+import io.noties.markwon.syntax.Prism4jTheme
+import io.noties.markwon.syntax.Prism4jThemeDarkula
+import io.noties.markwon.syntax.Prism4jThemeDefault
+import io.noties.markwon.syntax.SyntaxHighlightPlugin
+import io.noties.prism4j.GrammarLocator
+import io.noties.prism4j.Prism4j
+import io.noties.prism4j.Prism4j.pattern
+import io.noties.prism4j.Prism4j.token
 import org.eclipse.lsp4j.SignatureHelp
 import org.eclipse.lsp4j.SignatureInformation
+import java.util.regex.Pattern
 
 open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
     editor,
@@ -76,7 +85,222 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
     protected val eventManager = editor.createSubEventManager()
 
     private lateinit var signatureHelp: SignatureHelp
-    private var markwon = Markwon.builder(editor.context).build()
+
+    var markwonTheme =
+        if (editor.colorScheme.isDark) Prism4jThemeDarkula.create()
+        else Prism4jThemeDefault.create()
+
+    private var markwon = Markwon
+        .builder(editor.context)
+        .usePlugin(SyntaxHighlightPlugin.create(Prism4j(object : GrammarLocator {
+            override fun grammar(prism4j: Prism4j, language: String): Prism4j.Grammar? {
+                return if (language == "rust") {
+                    val stringToken = token(
+                        "string",
+                        pattern(
+                            Pattern.compile("b?\"(?:\\\\[\\s\\S]|[^\\\\\"])*\"|b?r(#*)\"(?:[^\"]|\"(?!\\1))*\"\\1"),
+                            false, true
+                        ),
+                    )
+                    Prism4j.grammar(
+                        "rust",
+
+                        token(
+                            "comment",
+                            pattern(
+                                Pattern.compile("(^|[^\\\\])/\\*(?:[^*/]|\\*(?!/)|/(?!\\*)|/\\*(?:[^*/]|\\*(?!/)|/(?!\\*)|/\\*(?:[^*/]|\\*(?!/)|/(?!\\*)|/\\*(?:[^*/]|\\*(?!/)|/(?!\\*)|[^\\s\\S])*\\*/)*\\*/)*\\*/)*\\*/"),
+                                true, true
+                            ),
+                            pattern(
+                                Pattern.compile("(^|[^\\\\:])//.*"),
+                                true, true
+                            ),
+                        ),
+                        stringToken,
+                        token(
+                            "char",
+                            pattern(
+                                Pattern.compile("b?'(?:\\\\(?:x[0-7][\\da-fA-F]|u\\{(?:[\\da-fA-F]_*){1,6}\\}|.)|[^\\\\\\r\\n\\t'])'"),
+                                false, true
+                            ),
+                        ),
+                        token(
+                            "attribute",
+                            pattern(
+                                Pattern.compile("#!?\\[(?:[^\\[\\]\"]|\"(?:\\\\[\\s\\S]|[^\\\\\"])*\")*\\\\]"),
+                                false, true, "attr-name",
+                                Prism4j.grammar("inside", stringToken)
+                            ),
+                        ),
+                        token(
+                            "closure-params",
+                            pattern(
+                                Pattern.compile("([=(,:]\\s*|\\bmove\\s*)\\|[^|]*\\||\\|[^|]*\\|(?=\\s*(?:\\{|->))"),
+                                true, true, null,
+                                Prism4j.grammar(
+                                    "inside",
+                                    token(
+                                        "closure-punctuation",
+                                        pattern(
+                                            Pattern.compile("^\\||\\|$"),
+                                            false,
+                                            false,
+                                            "punctuation"
+                                        )
+                                    )
+                                )
+                            ),
+                        ),
+                        token(
+                            "lifetime-annotation",
+                            pattern(
+                                Pattern.compile("'\\w+"),
+                                false, false, "symbol"
+                            ),
+                        ),
+                        token(
+                            "fragment-specifier",
+                            pattern(
+                                Pattern.compile("(\\$\\w+:)[a-z]+"),
+                                true, false, "punctuation"
+                            ),
+                        ),
+                        token(
+                            "variable",
+                            pattern(
+                                Pattern.compile("\\$\\w+")
+                            ),
+                        ),
+                        token(
+                            "function-definition",
+                            pattern(
+                                Pattern.compile("(\\bfn\\s+)\\w+"),
+                                true, false, "function"
+                            ),
+                        ),
+                        token(
+                            "type-definition",
+                            pattern(
+                                Pattern.compile("(\\b(?:enum|struct|trait|type|union)\\s+)\\w+"),
+                                true, false, "class-name"
+                            ),
+                        ),
+                        token(
+                            "module-declaration",
+                            pattern(
+                                Pattern.compile("(\\b(?:crate|mod)\\s+)[a-z][a-z_\\d]*"),
+                                true, false, "namespace"
+                            ),
+                            pattern(
+                                Pattern.compile("(\\b(?:crate|self|super)\\s*)::\\s*[a-z][a-z_\\d]*\\b(?:\\s*::(?:\\s*[a-z][a-z_\\d]*\\s*::)*)?"),
+                                true, false, "namespace",
+                                Prism4j.grammar(
+                                    "inside",
+                                    token("punctuation", pattern(Pattern.compile("::")))
+                                )
+                            ),
+                        ),
+                        token(
+                            "keyword",
+                            pattern(
+                                Pattern.compile("\\b(?:Self|abstract|as|async|await|become|box|break|const|continue|crate|do|dyn|else|enum|extern|final|fn|for|if|impl|in|let|loop|macro|match|mod|move|mut|override|priv|pub|ref|return|self|static|struct|super|trait|try|type|typeof|union|unsafe|unsized|use|virtual|where|while|yield)\\b")
+                            ),
+                            pattern(
+                                Pattern.compile("\\b(?:bool|char|f(?:32|64)|[ui](?:8|16|32|64|128|size)|str)\\b")
+                            ),
+                        ),
+                        token(
+                            "function",
+                            pattern(
+                                Pattern.compile("\\b[a-z_]\\w*(?=\\s*(?:::\\s*<|\\())")
+                            ),
+                        ),
+                        token(
+                            "macro",
+                            pattern(
+                                Pattern.compile("\\b\\w+!"),
+                                false, false, "property"
+                            ),
+                        ),
+                        token(
+                            "constant",
+                            pattern(
+                                Pattern.compile("\\b[A-Z_][A-Z_\\d]+\\b")
+                            ),
+                        ),
+                        token(
+                            "class-name",
+                            pattern(
+                                Pattern.compile("\\b[A-Z]\\w*\\b")
+                            ),
+                        ),
+                        token(
+                            "namespace",
+                            pattern(
+                                Pattern.compile("(?:\\b[a-z][a-z_\\d]*\\s*::\\s*)*\\b[a-z][a-z_\\d]*\\s*::(?!\\s*<)"),
+                                false, false
+                            ),
+                        ),
+                        token(
+                            "number",
+                            pattern(
+                                Pattern.compile("\\b(?:0x[\\dA-Fa-f](?:_?[\\dA-Fa-f])*|0o[0-7](?:_?[0-7])*|0b[01](?:_?[01])*|(?:(?:\\d(?:_?\\d)*)?\\.)?\\d(?:_?\\d)*(?:[Ee][+-]?\\d+)?)(?:_?(?:f32|f64|[iu](?:8|16|32|64|size)?))?\\b")
+                            ),
+                        ),
+                        token(
+                            "boolean",
+                            pattern(
+                                Pattern.compile("\\b(?:false|true)\\b")
+                            ),
+                        ),
+                        token(
+                            "punctuation",
+                            pattern(
+                                Pattern.compile("->|\\.\\.=|\\.{1,3}|::|[{}\\\\;(),:]"),
+                                false,
+                                false,
+                                null,
+                                Prism4j.grammar(
+                                    "inside",
+                                    token("punctuation", pattern(Pattern.compile("::")))
+                                )
+                            ),
+                        ),
+                        token(
+                            "operator",
+                            pattern(
+                                Pattern.compile("[-+*/%!^]=?|=[=>]?|&[&=]?|\\|[|=]?|<<?=?|>>?=?|[@?]")
+                            ),
+                        ),
+
+
+                        )
+                } else null
+            }
+
+            override fun languages(): MutableSet<String> {
+                return mutableSetOf("rust")
+            }
+
+        }), object : Prism4jTheme {
+            override fun background(): Int {
+                return markwonTheme.background()
+            }
+
+            override fun textColor(): Int {
+                return markwonTheme.textColor()
+            }
+            override fun apply(
+                language: String,
+                syntax: Prism4j.Syntax,
+                builder: SpannableStringBuilder,
+                start: Int,
+                end: Int
+            ) {
+                markwonTheme.apply(language, syntax, builder, start, end)
+            }
+        }))
+        .build()
 
     init {
         super.setContentView(rootView)
