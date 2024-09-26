@@ -27,6 +27,7 @@ package io.github.rosemoe.sora.lsp.editor
 import androidx.annotation.WorkerThread
 import io.github.rosemoe.sora.event.ColorSchemeUpdateEvent
 import io.github.rosemoe.sora.event.ContentChangeEvent
+import io.github.rosemoe.sora.event.SelectionChangeEvent
 import io.github.rosemoe.sora.lang.Language
 import io.github.rosemoe.sora.lsp.client.languageserver.requestmanager.RequestManager
 import io.github.rosemoe.sora.lsp.client.languageserver.serverdefinition.LanguageServerDefinition
@@ -38,6 +39,7 @@ import io.github.rosemoe.sora.lsp.events.diagnostics.publishDiagnostics
 import io.github.rosemoe.sora.lsp.events.document.documentClose
 import io.github.rosemoe.sora.lsp.events.document.documentOpen
 import io.github.rosemoe.sora.lsp.events.document.documentSave
+import io.github.rosemoe.sora.lsp.events.signature.signatureHelp
 import io.github.rosemoe.sora.lsp.requests.Timeout
 import io.github.rosemoe.sora.lsp.requests.Timeouts
 import io.github.rosemoe.sora.lsp.utils.FileUri
@@ -46,6 +48,7 @@ import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.subscribeEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.future
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.eclipse.lsp4j.Diagnostic
@@ -112,9 +115,20 @@ class LspEditor(
                 signatureHelpWindowWeakReference = WeakReference(SignatureHelpWindow(currentEditor))
             }
 
+            val selectionChangeEvent = currentEditor.subscribeEvent(SelectionChangeEvent::class.java) { e, _ ->
+                if (isShowSignatureHelp)
+                    coroutineScope.launch {
+                        eventManager.emitAsync(
+                            EventType.signatureHelp,
+                            e.left
+                        )
+                    }
+            }
+
             unsubscribeFunction = Runnable {
                 subscriptionReceipt.unsubscribe()
                 themeChangeEvent.unsubscribe()
+                selectionChangeEvent.unsubscribe()
             }
         }
         get() {
