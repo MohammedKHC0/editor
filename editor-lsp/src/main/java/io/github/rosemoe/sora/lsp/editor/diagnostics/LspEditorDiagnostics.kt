@@ -204,7 +204,11 @@ class LspEditorDiagnostics(
             dismiss()
             return
         }
-        super.updateWindowPosition()
+
+        // FIXME Sometimes we get java.lang.IndexOutOfBoundsException when deleting.
+        runCatching {
+            super.updateWindowPosition()
+        }
     }
 
     override fun show() {
