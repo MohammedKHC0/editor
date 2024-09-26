@@ -112,7 +112,7 @@ class LspProject(
         editors.clear()
     }
 
-    internal fun getLanguageServerWrapper(ext: String): LanguageServerWrapper? {
+    fun getLanguageServerWrapper(ext: String): LanguageServerWrapper? {
         return languageServerWrappers[ext]
     }
 
