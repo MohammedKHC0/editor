@@ -377,6 +377,7 @@ class DefaultRequestManager(
         } else null
     }
 
+    @Deprecated("", ReplaceWith(""))
     override fun hover(params: TextDocumentPositionParams): CompletableFuture<Hover>? {
         return hover(HoverParams(params.textDocument, params.position))
     }
@@ -392,6 +393,7 @@ class DefaultRequestManager(
         } else null
     }
 
+    @Deprecated("", ReplaceWith(""))
     override fun signatureHelp(params: TextDocumentPositionParams): CompletableFuture<SignatureHelp>? {
         return signatureHelp(SignatureHelpParams(params.textDocument, params.position))
     }
@@ -422,6 +424,7 @@ class DefaultRequestManager(
         } else null
     }
 
+    @Deprecated("", ReplaceWith(""))
     override fun documentHighlight(params: TextDocumentPositionParams): CompletableFuture<List<DocumentHighlight>>? {
         return documentHighlight(DocumentHighlightParams(params.textDocument, params.position))
     }
@@ -493,6 +496,7 @@ class DefaultRequestManager(
         } else null
     }
 
+    @Deprecated("", ReplaceWith(""))
     override fun definition(params: TextDocumentPositionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>>? {
         return definition(DefinitionParams(params.textDocument, params.position))
     }
