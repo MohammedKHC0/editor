@@ -46,6 +46,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelChildren
+import java.util.Collections
 import java.util.concurrent.ForkJoinPool
 import kotlin.reflect.KFunction0
 
@@ -61,7 +62,7 @@ class LspProject(
 
     private val serverDefinitions = mutableMapOf<String, LanguageServerDefinition>()
 
-    private val editors = mutableMapOf<FileUri, LspEditor>()
+    private val editors = Collections.synchronizedMap(mutableMapOf<FileUri, LspEditor>())
 
     val diagnosticsContainer = DiagnosticsContainer()
 
