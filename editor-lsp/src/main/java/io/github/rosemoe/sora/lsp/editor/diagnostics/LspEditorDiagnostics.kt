@@ -26,6 +26,7 @@ package io.github.rosemoe.sora.lsp.editor.diagnostics
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import io.github.rosemoe.sora.lang.completion.snippet.parser.CodeSnippetParser
 import io.github.rosemoe.sora.lang.diagnostic.DiagnosticDetail
 import io.github.rosemoe.sora.lang.diagnostic.Quickfix
@@ -47,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.eclipse.lsp4j.CodeActionContext
+import org.eclipse.lsp4j.CodeActionKind
 import org.eclipse.lsp4j.CodeActionParams
 import org.eclipse.lsp4j.CodeActionTriggerKind
 import org.eclipse.lsp4j.Diagnostic
@@ -67,7 +69,7 @@ class LspEditorDiagnostics(
         }
     }
 
-    private fun applyCodeActionEdits(edit: WorkspaceEdit) {
+    fun applyCodeActionEdits(edit: WorkspaceEdit) {
         edit.changes?.forEach { change ->
             applyCodeActionEdits(change.value)
         }
@@ -86,7 +88,7 @@ class LspEditorDiagnostics(
         }
     }
 
-    private fun applyCodeActionEdits(
+    fun applyCodeActionEdits(
         textEdits: List<TextEdit>,
         currentEditor: CodeEditor = editor,
         currentLspEditor: LspEditor = lspEditor
@@ -147,7 +149,8 @@ class LspEditorDiagnostics(
                             lspEditor.uri.createTextDocumentIdentifier(),
                             diagnosticSource.range,
                             CodeActionContext(
-                                listOf(diagnosticSource)
+                                listOf(diagnosticSource),
+                                listOf(CodeActionKind.QuickFix)
                             ).apply {
                                 triggerKind = CodeActionTriggerKind.Automatic
                             }
@@ -155,20 +158,26 @@ class LspEditorDiagnostics(
                     )?.get(2, TimeUnit.SECONDS)
 
                     codeAction?.forEach {
-                        if (it.isLeft || it.right.kind != "quickfix") return@forEach
+                        if (it.isLeft) return@forEach
                         quickfixes += Quickfix(it.right.title, fixAction = {
                             if (it.right.edit != null) {
                                 applyCodeActionEdits(it.right.edit)
                             } else {
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    val newCodeAction =
-                                        lspEditor.requestManager!!.resolveCodeAction(
-                                            it.right
-                                        )?.get(2, TimeUnit.SECONDS)
-
-                                    if (newCodeAction != null) {
+                                lspEditor.coroutineScope.launch(Dispatchers.IO) {
+                                    runCatching {
+                                        lspEditor.requestManager!!.resolveCodeAction(it.right)
+                                            ?.get(2, TimeUnit.SECONDS)?.let { newCodeAction ->
+                                                withContext(Dispatchers.Main) {
+                                                    applyCodeActionEdits(newCodeAction.edit)
+                                                }
+                                            }
+                                    }.onFailure {
                                         withContext(Dispatchers.Main) {
-                                            applyCodeActionEdits(newCodeAction.edit)
+                                            Toast.makeText(
+                                                editor.context,
+                                                "Failed to apply code action.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
                                         }
                                     }
                                 }
