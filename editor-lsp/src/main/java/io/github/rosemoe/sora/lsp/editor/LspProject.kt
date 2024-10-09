@@ -24,6 +24,7 @@
 
 package io.github.rosemoe.sora.lsp.editor
 
+import android.util.Log
 import io.github.rosemoe.sora.lsp.client.languageserver.serverdefinition.LanguageServerDefinition
 import io.github.rosemoe.sora.lsp.client.languageserver.wrapper.LanguageServerWrapper
 import io.github.rosemoe.sora.lsp.editor.diagnostics.DiagnosticsContainer
@@ -46,7 +47,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelChildren
-import java.util.Collections
 import java.util.concurrent.ForkJoinPool
 import kotlin.reflect.KFunction0
 
@@ -62,7 +62,7 @@ class LspProject(
 
     private val serverDefinitions = mutableMapOf<String, LanguageServerDefinition>()
 
-    private val editors = Collections.synchronizedMap(mutableMapOf<FileUri, LspEditor>())
+    private val editors = mutableMapOf<FileUri, LspEditor>()
 
     val diagnosticsContainer = DiagnosticsContainer()
 
@@ -107,10 +107,15 @@ class LspProject(
     }
 
     fun closeAllEditors() {
-        editors.forEach {
-            it.value.dispose()
+        // FIXME ConcurrentModificationException
+        runCatching {
+            editors.forEach {
+                it.value.dispose()
+            }
+            editors.clear()
+        }.onFailure {
+            Log.e("LspProject", "Failed to close editors", it)
         }
-        editors.clear()
     }
 
     fun getLanguageServerWrapper(ext: String): LanguageServerWrapper? {
