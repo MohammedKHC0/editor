@@ -25,37 +25,19 @@
 package io.github.rosemoe.sora.lsp.editor.diagnostics
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import io.github.rosemoe.sora.lang.completion.snippet.parser.CodeSnippetParser
 import io.github.rosemoe.sora.lang.diagnostic.DiagnosticDetail
-import io.github.rosemoe.sora.lang.diagnostic.Quickfix
 import io.github.rosemoe.sora.lsp.editor.LspEditor
-import io.github.rosemoe.sora.lsp.editor.getEventListener
 import io.github.rosemoe.sora.lsp.events.EventType
-import io.github.rosemoe.sora.lsp.events.document.DocumentChangeEvent
 import io.github.rosemoe.sora.lsp.events.document.applyEdits
-import io.github.rosemoe.sora.lsp.requests.Timeout
-import io.github.rosemoe.sora.lsp.requests.Timeouts
 import io.github.rosemoe.sora.lsp.utils.FileUri
-import io.github.rosemoe.sora.lsp.utils.createTextDocumentIdentifier
 import io.github.rosemoe.sora.lsp.utils.toFileUri
 import io.github.rosemoe.sora.text.CharPosition
 import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.eclipse.lsp4j.CodeActionContext
-import org.eclipse.lsp4j.CodeActionKind
-import org.eclipse.lsp4j.CodeActionParams
-import org.eclipse.lsp4j.CodeActionTriggerKind
-import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.WorkspaceEdit
 import java.net.URI
-import java.util.concurrent.TimeUnit
 
 class LspEditorDiagnostics(
     editor: CodeEditor,
@@ -121,90 +103,14 @@ class LspEditorDiagnostics(
         }
     }
 
+    var setDiagnosticCallback: ((DiagnosticDetail?) -> Unit)? = null
+
+    override fun updateWindowSize() {}
+
     override fun updateDiagnostic(diagnostic: DiagnosticDetail?, position: CharPosition?) {
-        if (!isEnabled) return
-
-        // Just in case
-        if (isShowing) dismiss()
-
-        if (diagnostic?.extraData != null && diagnostic.extraData is Diagnostic) {
-            val quickfixes = mutableListOf<Quickfix>()
-            val diagnosticSource = diagnostic.extraData as Diagnostic
-            CoroutineScope(Dispatchers.IO).launch {
-                val documentChangeEvent =
-                    lspEditor.eventManager.getEventListener<DocumentChangeEvent>()
-
-                val documentChangeFuture =
-                    documentChangeEvent?.future
-
-                if (documentChangeFuture?.isDone == false || documentChangeFuture?.isCompletedExceptionally == false || documentChangeFuture?.isCancelled == false) {
-                    runCatching {
-                        documentChangeFuture[Timeout[Timeouts.WILLSAVE].toLong(), TimeUnit.MILLISECONDS]
-                    }
-                }
-
-                try {
-                    val codeAction = lspEditor.requestManager?.codeAction(
-                        CodeActionParams(
-                            lspEditor.uri.createTextDocumentIdentifier(),
-                            diagnosticSource.range,
-                            CodeActionContext(
-                                listOf(diagnosticSource),
-                                listOf(CodeActionKind.QuickFix)
-                            ).apply {
-                                triggerKind = CodeActionTriggerKind.Automatic
-                            }
-                        )
-                    )?.get(2, TimeUnit.SECONDS)
-
-                    codeAction?.forEach {
-                        if (it.isLeft) return@forEach
-                        quickfixes += Quickfix(it.right.title, fixAction = {
-                            if (it.right.edit != null) {
-                                applyCodeActionEdits(it.right.edit)
-                            } else {
-                                lspEditor.coroutineScope.launch(Dispatchers.IO) {
-                                    runCatching {
-                                        lspEditor.requestManager!!.resolveCodeAction(it.right)
-                                            ?.get(2, TimeUnit.SECONDS)?.let { newCodeAction ->
-                                                withContext(Dispatchers.Main) {
-                                                    applyCodeActionEdits(newCodeAction.edit)
-                                                }
-                                            }
-                                    }.onFailure {
-                                        withContext(Dispatchers.Main) {
-                                            Toast.makeText(
-                                                editor.context,
-                                                "Failed to apply code action.",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        }
-                                    }
-                                }
-                            }
-                        })
-                    }
-                } catch (e: Throwable) {
-                    Log.w("LspEditorDiagnostics", e)
-                }
-
-                if (quickfixes.size > 0) {
-                    withContext(Dispatchers.Main) {
-                        if (isShowing && currentDiagnostic == diagnostic) {
-                            super.updateDiagnostic(
-                                DiagnosticDetail(
-                                    diagnostic.briefMessage,
-                                    diagnostic.detailedMessage,
-                                    quickfixes,
-                                    null
-                                ), editor.cursor.left()
-                            )
-                        }
-                    }
-                }
-            }
+        if (isEnabled && diagnostic != currentDiagnostic) {
+            setDiagnosticCallback?.invoke(diagnostic)
         }
-
         super.updateDiagnostic(diagnostic, position)
     }
 
