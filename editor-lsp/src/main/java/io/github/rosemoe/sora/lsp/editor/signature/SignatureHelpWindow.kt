@@ -60,6 +60,7 @@ import io.noties.prism4j.Prism4j.token
 import org.eclipse.lsp4j.SignatureHelp
 import org.eclipse.lsp4j.SignatureInformation
 import java.util.regex.Pattern
+import kotlin.math.roundToInt
 
 open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
     editor,
@@ -303,6 +304,7 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
         .build()
 
     init {
+        popup.elevation = 0F
         super.setContentView(rootView)
 
         eventManager.subscribeEvent<EditorFocusChangeEvent> { e, _ ->
@@ -524,6 +526,7 @@ open class SignatureHelpWindow(editor: CodeEditor) : EditorPopupWindow(
         val background = GradientDrawable()
         background.cornerRadius = editor.dpUnit * 8
         background.setColor(colorScheme.getColor(EditorColorScheme.SIGNATURE_BACKGROUND))
+        background.setStroke(editor.dpUnit.roundToInt(), colorScheme.getColor(EditorColorScheme.COMPLETION_WND_CORNER))
         rootView.background = background
 
         if (isShowing) {

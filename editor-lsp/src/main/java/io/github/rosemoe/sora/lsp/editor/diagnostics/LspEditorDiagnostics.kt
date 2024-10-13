@@ -26,22 +26,20 @@ package io.github.rosemoe.sora.lsp.editor.diagnostics
 
 import android.content.Context
 import io.github.rosemoe.sora.lang.completion.snippet.parser.CodeSnippetParser
-import io.github.rosemoe.sora.lang.diagnostic.DiagnosticDetail
 import io.github.rosemoe.sora.lsp.editor.LspEditor
 import io.github.rosemoe.sora.lsp.events.EventType
 import io.github.rosemoe.sora.lsp.events.document.applyEdits
 import io.github.rosemoe.sora.lsp.utils.FileUri
 import io.github.rosemoe.sora.lsp.utils.toFileUri
-import io.github.rosemoe.sora.text.CharPosition
 import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow
 import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.WorkspaceEdit
 import java.net.URI
 
-class LspEditorDiagnostics(
+open class LspEditorDiagnostics(
     editor: CodeEditor,
-    private val lspEditor: LspEditor,
+    val lspEditor: LspEditor,
     private val openEditorCallback: (context: Context, uri: FileUri, afterOpenCallback: (CodeEditor, LspEditor) -> Unit) -> Unit
 ) :
     EditorDiagnosticTooltipWindow(editor) {
@@ -103,16 +101,7 @@ class LspEditorDiagnostics(
         }
     }
 
-    var setDiagnosticCallback: ((DiagnosticDetail?) -> Unit)? = null
-
     override fun updateWindowSize() {}
-
-    override fun updateDiagnostic(diagnostic: DiagnosticDetail?, position: CharPosition?) {
-        if (isEnabled && diagnostic != currentDiagnostic) {
-            setDiagnosticCallback?.invoke(diagnostic)
-        }
-        super.updateDiagnostic(diagnostic, position)
-    }
 
     override fun updateWindowPosition() {
         if (lspEditor.isShowSignatureHelp) {
