@@ -28,7 +28,7 @@ plugins {
     id("kotlin-android")
 }
 
-group = "com.github.MohammedKHC0.editor"
+group = "io.github.Rosemoe.sora-editor"
 version = Versions.versionName
 
 android {
