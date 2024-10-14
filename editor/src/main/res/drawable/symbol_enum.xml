@@ -1,5 +1,8 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24dp" android:viewportHeight="16" android:viewportWidth="16" android:width="24dp">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:height="24dp" android:viewportHeight="16" android:viewportWidth="16" android:width="24dp">
       
-    <path android:fillColor="#ffffff" android:fillType="evenOdd" android:pathData="M14,2L8,2L7,3v3h1L8,3h6v5h-4v1h4l1,-1L15,3l-1,-1zM9,6h4v1L9.41,7L9,6.59L9,6zM7,7L2,7L1,8v5l1,1h6l1,-1L9,8L8,7L7,7zM8,13L2,13L2,8h6v5zM3,9h4v1L3,10L3,9zM3,11h4v1L3,12v-1zM9,4h4v1L9,5L9,4z"/>
+    <path android:fillColor="#ffffff" android:fillType="evenOdd" android:pathData="M14,2L8,2L7,3v3h1L8,3h6v5h-4v1h4l1,-1L15,3l-1,-1zM9,6h4v1L9.41,7L9,6.59L9,6zM7,7L2,7L1,8v5l1,1h6l1,-1L9,8L8,7L7,7zM8,13L2,13L2,8h6v5zM3,9h4v1L3,10L3,9zM3,11h4v1L3,12v-1zM9,4h4v1L9,5L9,4z"
+        tools:ignore="UnusedAttribute" />
     
 </vector>
