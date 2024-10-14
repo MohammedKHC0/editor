@@ -23,8 +23,6 @@
  */
 package io.github.rosemoe.sora.lang.completion;
 
-import android.graphics.drawable.Drawable;
-
 import androidx.annotation.NonNull;
 
 import io.github.rosemoe.sora.text.CharPosition;
@@ -40,11 +38,7 @@ public class SimpleSnippetCompletionItem extends CompletionItem {
     }
 
     public SimpleSnippetCompletionItem(CharSequence label, CharSequence desc, SnippetDescription snippet) {
-        this(label, desc, null, snippet);
-    }
-
-    public SimpleSnippetCompletionItem(CharSequence label, CharSequence desc, Drawable icon, SnippetDescription snippet) {
-        super(label, desc, icon);
+        super(label, desc);
         this.snippet = snippet;
         kind(CompletionItemKind.Snippet);
     }

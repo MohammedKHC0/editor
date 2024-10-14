@@ -23,8 +23,6 @@
  */
 package io.github.rosemoe.sora.lang.completion;
 
-import android.graphics.drawable.Drawable;
-
 import androidx.annotation.NonNull;
 
 import io.github.rosemoe.sora.text.Content;
@@ -54,11 +52,7 @@ public class SimpleCompletionItem extends CompletionItem {
     }
 
     public SimpleCompletionItem(CharSequence label, CharSequence desc, int prefixLength, String commitText) {
-        this(label, desc, null, prefixLength, commitText);
-    }
-
-    public SimpleCompletionItem(CharSequence label, CharSequence desc, Drawable icon, int prefixLength, String commitText) {
-        super(label, desc, icon);
+        super(label, desc);
         this.commitText = commitText;
         this.prefixLength = prefixLength;
     }
@@ -66,12 +60,6 @@ public class SimpleCompletionItem extends CompletionItem {
     @Override
     public SimpleCompletionItem desc(CharSequence desc) {
         super.desc(desc);
-        return this;
-    }
-
-    @Override
-    public SimpleCompletionItem icon(Drawable icon) {
-        super.icon(icon);
         return this;
     }
 
@@ -84,9 +72,6 @@ public class SimpleCompletionItem extends CompletionItem {
     @Override
     public SimpleCompletionItem kind(CompletionItemKind kind) {
         super.kind(kind);
-        if (this.icon == null) {
-            icon = SimpleCompletionIconDrawer.draw(kind);
-        }
         return this;
     }
 

@@ -23,8 +23,6 @@
  */
 package io.github.rosemoe.sora.lang.completion;
 
-import android.graphics.drawable.Drawable;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -48,12 +46,6 @@ import io.github.rosemoe.sora.widget.CodeEditor;
 public abstract class CompletionItem {
 
     /**
-     * Icon for displaying in adapter
-     */
-    @Nullable
-    public Drawable icon;
-
-    /**
      * Text to display as title in adapter
      */
     public CharSequence label;
@@ -68,7 +60,7 @@ public abstract class CompletionItem {
      * an icon is chosen by the editor.
      */
     @Nullable
-    protected CompletionItemKind kind;
+    public CompletionItemKind kind;
 
     /**
      * Use for default sort
@@ -91,13 +83,8 @@ public abstract class CompletionItem {
     }
 
     public CompletionItem(CharSequence label, CharSequence desc) {
-        this(label, desc, null);
-    }
-
-    public CompletionItem(CharSequence label, CharSequence desc, Drawable icon) {
         this.label = label;
         this.desc = desc;
-        this.icon = icon;
     }
 
     public CompletionItem label(CharSequence label) {
@@ -112,11 +99,6 @@ public abstract class CompletionItem {
 
     public CompletionItem kind(CompletionItemKind kind) {
         this.kind = kind;
-        return this;
-    }
-
-    public CompletionItem icon(Drawable icon) {
-        this.icon = icon;
         return this;
     }
 

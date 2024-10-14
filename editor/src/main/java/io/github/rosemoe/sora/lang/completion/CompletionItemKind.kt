@@ -24,44 +24,42 @@
 
 package io.github.rosemoe.sora.lang.completion
 
+import io.github.rosemoe.sora.R
+
 
 /**
  * Completion item kinds.
  */
 enum class CompletionItemKind(
     val value: Int,
-    val defaultDisplayBackgroundColor: Long = 0,
+    val iconRes: Int,
 ) {
-    Identifier(0, 0xffabb6bd),
-    Text(0, 0xffabb6bd),
-    Method(1, 0xfff4b2be),
-    Function(2, 0xfff4b2be),
-    Constructor(3, 0xfff4b2be),
-    Field(4, 0xfff1c883),
-    Variable(5, 0xfff1c883),
-    Class(6, 0xff85cce5),
-    Interface(7, 0xff99cb87),
-    Module(8, 0xff85cce5),
-    Property(9, 0xffcebcf4),
-    Unit(10),
-    Value(11, 0xfff1c883),
-    Enum(12, 0xff85cce5),
-    Keyword(13, 0xffcc7832),
-    Snippet(14),
-    Color(15, 0xfff4b2be),
-    Reference(17),
-    File(16),
-    Folder(18),
-    EnumMember(19),
-    Constant(20, 0xfff1c883),
-    Struct(21, 0xffcebcf4),
-    Event(22),
-    Operator(23, 0xffeaabb6),
-    TypeParameter(24, 0xfff1c883),
-    User(25),
-    Issue(26);
-
-    private val displayString = name[0].toString()
-
-    fun getDisplayChar(): String = displayString
+    Identifier(0, R.drawable.symbol_string),
+    Text(0, R.drawable.symbol_string),
+    Method(1, R.drawable.symbol_method),
+    Function(2, R.drawable.symbol_method),
+    Constructor(3, R.drawable.symbol_method),
+    Field(4, R.drawable.symbol_field),
+    Variable(5, R.drawable.symbol_variable),
+    Class(6, R.drawable.symbol_class),
+    Interface(7, R.drawable.symbol_interface),
+    Module(8, R.drawable.symbol_namespace),
+    Property(9, R.drawable.symbol_property),
+    Unit(10, R.drawable.symbol_ruler),
+    Value(11, R.drawable.symbol_enum),
+    Enum(12, R.drawable.symbol_enum),
+    Keyword(13, R.drawable.symbol_keyword),
+    Snippet(14, R.drawable.symbol_snippet),
+    Color(15, R.drawable.symbol_color),
+    Reference(17, R.drawable.symbol_reference),
+    File(16, R.drawable.symbol_class),
+    Folder(18, R.drawable.symbol_folder),
+    EnumMember(19, R.drawable.symbol_enum_member),
+    Constant(20, R.drawable.symbol_constant),
+    Struct(21, R.drawable.symbol_structure),
+    Event(22, R.drawable.symbol_event),
+    Operator(23, R.drawable.symbol_operator),
+    TypeParameter(24, R.drawable.symbol_parameter),
+    User(25, R.drawable.symbol_user),
+    Issue(26, R.drawable.symbol_issue);
 }

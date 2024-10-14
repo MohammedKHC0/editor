@@ -27,7 +27,6 @@
 package io.github.rosemoe.sora.lsp.editor.completion
 
 import io.github.rosemoe.sora.lang.completion.CompletionItemKind
-import io.github.rosemoe.sora.lang.completion.SimpleCompletionIconDrawer.draw
 import io.github.rosemoe.sora.lang.completion.snippet.parser.CodeSnippetParser
 import io.github.rosemoe.sora.lsp.editor.LspEventManager
 import io.github.rosemoe.sora.lsp.events.EventType
@@ -67,7 +66,6 @@ class LspCompletionItem(
                 if (it == null) "" else "$it "
             }}${labelDetails.description ?: ""}"
         }
-        icon = draw(kind ?: CompletionItemKind.Text)
     }
 
     override fun performCompletion(editor: CodeEditor, text: Content, position: CharPosition) {

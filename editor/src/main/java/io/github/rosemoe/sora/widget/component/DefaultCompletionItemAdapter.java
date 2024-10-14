@@ -23,6 +23,7 @@
  */
 package io.github.rosemoe.sora.widget.component;
 
+import android.content.res.ColorStateList;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,7 +69,12 @@ public final class DefaultCompletionItemAdapter extends EditorCompletionAdapter 
             view.setBackgroundColor(0);
         }
         ImageView iv = view.findViewById(R.id.result_item_image);
-        iv.setImageDrawable(item.icon);
+        if (item.kind == null) iv.setImageDrawable(null);
+        else {
+            iv.setImageDrawable(getContext().getDrawable(item.kind.getIconRes()));
+            // FIXME create new EditorColorScheme color for text primary.
+            iv.setImageTintList(ColorStateList.valueOf(getColorScheme().getColor(EditorColorScheme.SIGNATURE_TEXT_HIGHLIGHTED_PARAMETER)));
+        }
         return view;
     }
 
