@@ -91,6 +91,6 @@ licences for IDEs such as [IntelliJ IDEA](https://www.jetbrains.com/idea/?from=C
 [<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/?from=CodeEditor)
 
 
-All files under [editor/src/main/res/drawable](editor/src/main/res/drawable) that starts with `symbol_` is taken from [VsCode Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons)
-And those icon files are modified because it's converted from svg to Android Vector Drawable and there is other modifications to it. (Suppressing warning and changing fillColor.)
-Those icons are by made Microsoft Corporation and and are licensed under [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode)
+All files under [editor/src/main/res/drawable](editor/src/main/res/drawable) that starts with `symbol_` is taken from [VsCode Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons).
+And those icons are modified because it's converted from svg to Android Vector Drawable and there is other modifications to it. (Suppressing warning and changing fillColor.)
+The author of those icons is Microsoft Corporation and and and are licensed under [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode)
