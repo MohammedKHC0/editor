@@ -12,10 +12,6 @@ sora-editor is a cool and optimized code editor on Android platform
 
 </div>
 
-Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md), [Español](README.es.md), [日本語](README.jp.md).
-
-Note that statements in other languages may not be up-to-date.
-
 ***Work In Progress*** This project is still developing slowly.   
 
 **Issues and pull requests are welcome.**
@@ -93,3 +89,8 @@ additional information or have any questions
 Thanks to [JetBrains](https://www.jetbrains.com/?from=CodeEditor) for allocating free open-source
 licences for IDEs such as [IntelliJ IDEA](https://www.jetbrains.com/idea/?from=CodeEditor).   
 [<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/?from=CodeEditor)
+
+
+All files under [editor/src/main/res/drawable](editor/src/main/res/drawable) that starts with `symbol_` is taken from [VsCode Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons)
+And those icon files are modified because it's converted from svg to Android Vector Drawable and there is other modifications to it. (Suppressing warning and changing fillColor.)
+Those icons are by made Microsoft Corporation and and are licensed under [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode)
